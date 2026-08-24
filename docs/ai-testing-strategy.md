@@ -1,6 +1,6 @@
 # AI Testing Strategy: Layered Oracles for the Security-Alert Assistant
 
-The assistant takes structured alert data — source IP, affected host, detection type, severity, timestamps, file hashes — and generates a free-text summary plus recommendations. Two runs on the same alert produce different sentences, so `assertEquals(expected, actual)` is dead on arrival. Every check below answers to a named risk: **fabrication** — an IP, hash, or CVE the alert never mentioned; **severity distortion** — a Low alert framed as an emergency, or the reverse; **prompt injection** — attacker-controlled filenames flow straight into the prompt; **data leakage** — usernames or internal hostnames in shareable output; **inconsistency** — "isolate the machine" on one run, "no action needed" on the next; **drift** — a silent provider-side model update; **degraded input** — malformed or contradictory data producing confident nonsense. My strategy replaces the single oracle with a stack of them, ordered strict-and-cheap to fuzzy-and-expensive, and moves pass/fail from single runs to statistics.
+The assistant takes structured alert data — source IP, affected host, detection type, severity, timestamps, file hashes — and generates a free-text summary plus recommendations. Two runs on the same alert produce different sentences, so `assertEquals(expected, actual)` is dead on arrival. Every check below answers to a named risk: **fabrication** (an IP, hash, or CVE the alert never mentioned); **severity distortion** (a Low alert framed as an emergency, or the reverse); **prompt injection** (attacker-controlled filenames flowing into the prompt); **data leakage** (usernames or internal hostnames in shareable output); **inconsistency** ("isolate the machine" one run, "no action needed" the next); **drift** (a silent provider-side model update); and **degraded input** (malformed or contradictory data producing confident nonsense). My strategy replaces the single oracle with a stack of them, ordered strict-and-cheap to fuzzy-and-expensive, and moves pass/fail from single runs to statistics.
 
 ## 1. What "pass" means when the output is variable
 
@@ -10,7 +10,7 @@ Pass is defined per property, not per string. I layer the oracles:
 
 **Layer 2 — grounding.** Every factual claim in the output is traceable to an alert field (mechanics in section 3). Also a hard fail.
 
-**Layer 3 — semantic similarity.** Embedding similarity against a human-written reference summary, above a baselined threshold — the weakest oracle here, kept only as a cheap signal that valid, grounded outputs have stopped saying anything useful.
+**Layer 3 — semantic similarity.** Embedding similarity against a human-written reference summary, above a threshold set empirically — the lowest similarity among outputs humans judged acceptable during corpus labeling, minus a small margin, re-derived whenever the corpus changes. The weakest oracle here, kept only as a cheap signal that valid, grounded outputs have stopped saying anything useful.
 
 **Layer 4 — rubric-based LLM judge.** For qualities no regex can check: is the recommendation appropriate for the alert type, actionable, free of alarmism on a low-severity event.
 

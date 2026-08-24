@@ -47,9 +47,9 @@ CI ([.github/workflows/tests.yml](.github/workflows/tests.yml)) runs the suite o
 
 ## AI usage statement (Part 4)
 
-- I used Claude (Anthropic's Claude Code) extensively across all four parts, as this assignment's policy invites. Direction and decisions were mine: the Book Store as SUT, the six-case automated scope, API-provisioned users instead of fighting reCAPTCHA, what stayed manual, what became a bug report.
-- Claude generated, under that direction: all three document drafts, the Playwright project, this README, and the scripted live exploration of the SUT.
-- Corrected: the first drafts assumed demoqa's pre-redesign UI (react-table filler rows, `/books?book=` URLs) — selectors, waits and expected results were rewritten from live behavior, down to exact alert texts.
-- Also corrected: a TC-09 race (navigating before the post-login redirect settled), caught in a failed run and fixed from the trace.
-- Rejected: a drafted "No rows found" assertion for TC-06 — the live site shows no such message; it became bug report BUG-02 instead.
-- Everything was validated live: the suite ran green repeatedly, including from a fresh clone following this README verbatim.
+- I used Claude (Anthropic's Claude Code) extensively across all four parts, as this policy invites. The decisions were mine: the Book Store as SUT, the six-case scope, API-provisioned users over reCAPTCHA, what stayed manual, what became a bug report.
+- Claude generated under that direction: the three document drafts, the Playwright project, this README, and the scripted live SUT exploration.
+- Corrected: first drafts assumed demoqa's pre-redesign UI (filler rows, `/books?book=` URLs) — selectors, waits and expected results were rewritten from live behavior.
+- Also corrected: a TC-09 race (navigating before the post-login redirect settled), fixed from the failing run's trace.
+- Rejected: a drafted "No rows found" assertion for TC-06 — the site shows no such message; it became bug report BUG-02.
+- Everything was validated live: the suite ran green repeatedly, including from a fresh clone following this README.

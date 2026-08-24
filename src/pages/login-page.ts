@@ -4,7 +4,10 @@ export class LoginPage {
   readonly userNameInput: Locator;
   readonly passwordInput: Locator;
   readonly loginButton: Locator;
-  /** Populated with "Invalid username or password!" on failed login. */
+  /**
+   * The invalid-login message ("Invalid username or password!"). demoqa
+   * renders it in a `<p id="name">`, hence the otherwise cryptic selector.
+   */
   readonly errorMessage: Locator;
 
   constructor(readonly page: Page) {

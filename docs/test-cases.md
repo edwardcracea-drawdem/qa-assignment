@@ -1,6 +1,6 @@
 # Test Cases — DEMOQA Book Store Application
 
-These are my Part 1 structured test cases for the Book Store Application at https://demoqa.com (entry point /books), tested black-box through the public UI and its REST API (Swagger at /swagger). The backend is public and shared — other visitors mutate the same data, and the registration UI sits behind reCAPTCHA — so every case that needs an account assumes a dedicated per-test user provisioned via `POST /Account/v1/User` and deleted in teardown via `DELETE /Account/v1/User/{uuid}` (the search cases need none); no case relies on a pre-existing account or collection state. Priorities: P1 covers the flows a real user cannot live without (login, search, adding a book); P2 covers negative and edge paths around them; P3 is policy verification. Six cases are automated through the UI with Playwright (TypeScript) — the 4–6 the assignment asks for — and the optional API suite additionally covers TC-08 and the backend half of TC-10. For the cases left manual, the reason is stated inline. Element ids in the steps (`#userName`, `#password`, `#searchBox`, `#delete-record-<isbn>`) are the application's real DOM ids and match the page-object selectors.
+These are my Part 1 structured test cases for the Book Store Application at https://demoqa.com (entry point /books), tested black-box through the public UI and its REST API (Swagger at /swagger). The backend is public and shared — other visitors mutate the same data, and the registration UI sits behind reCAPTCHA — so every case that needs an account assumes a dedicated per-test user provisioned via `POST /Account/v1/User` and deleted in teardown via `DELETE /Account/v1/User/{uuid}` (the search cases need none); no case relies on a pre-existing account or collection state. Priorities: P1 covers the flows a real user cannot live without (login, search, adding a book); P2 covers negative and edge paths around them; P3 is policy verification. The mix is deliberate: four positive (TC-01, 05, 07, 09), four negative (TC-02, 03, 08, 10) and two edge/boundary (TC-04 unauthenticated access, TC-06 boundary search inputs). Six cases are automated through the UI with Playwright (TypeScript) — the 4–6 the assignment asks for — and the optional API suite additionally covers TC-08 and the backend half of TC-10. For the cases left manual, the reason is stated inline. Element ids in the steps (`#userName`, `#password`, `#searchBox`, `#delete-record-<isbn>`) are the application's real DOM ids and match the page-object selectors.
 
 **Grid note (applies to TC-05, TC-06, TC-09):** the book grid on /books and /profile renders one plain `tbody tr` per real result and nothing else — an empty result set means an empty table body, with no placeholder rows and, notably, no "no results" message (flagged as a UX gap in TC-06). Search filters as you type, case-insensitively, across title, author *and* publisher.
 
@@ -11,7 +11,7 @@ These are my Part 1 structured test cases for the Book Store Application at http
 | TC-03 | Login with empty fields triggers client-side validation, no request | P2 | No |
 | TC-04 | Direct /profile access when not logged in prompts to login | P2 | No |
 | TC-05 | Search by partial, case-insensitive title filters the list | P1 | UI — tests/ui/search.spec.ts |
-| TC-06 | Search with no matching book shows an empty list | P2 | UI — tests/ui/search.spec.ts |
+| TC-06 | Search handles no-match and boundary inputs, staying empty and functional | P2 | UI — tests/ui/search.spec.ts |
 | TC-07 | Logged-in user adds a book to collection; it appears in profile | P1 | UI — tests/ui/collection.spec.ts |
 | TC-08 | Adding the same book twice is rejected | P2 | API — tests/api/bookstore-api.spec.ts |
 | TC-09 | Deleting a book from profile collection removes it | P2 | UI — tests/ui/collection.spec.ts |
@@ -94,20 +94,23 @@ These are my Part 1 structured test cases for the Book Store Application at http
 - The grid is reduced to exactly the catalog entries matching "git" case-insensitively — against the current stable catalog, the single row *Git Pocket Guide*.
 - The oracle is derived from `GET /BookStore/v1/Books` at run time, not hard-coded, since the backend is shared: the displayed titles must equal the catalog entries whose title, author or publisher contains the term. (The filter's cross-field scope is real: `Addy` matches *Learning JavaScript Design Patterns* by author, `No Starch` matches two books by publisher.)
 
-### TC-06 — Search with no matching book shows an empty list
+### TC-06 — Search handles no-match and boundary inputs, staying empty and functional
 
-- **Priority:** P2 | **Type:** negative/edge
+- **Priority:** P2 | **Type:** edge / boundary
 - **Automated:** yes — tests/ui/search.spec.ts
 - **Preconditions:** None.
 
 **Steps**
 1. Open https://demoqa.com/books and wait for the catalog to render.
-2. Type a term that matches nothing, e.g. `no such book 0000`, into `#searchBox`.
+2. Type a plain non-matching term (e.g. `no such book 0000`) into `#searchBox`.
+3. Replace it with a markup/injection-shaped term (`<script>alert(1)</script>`).
+4. Replace it with a whitespace-only term (`   `).
+5. Clear `#searchBox`.
 
 **Expected results**
-- The table body renders zero rows — no book data and no placeholder rows.
-- **Observed UX gap, reported as BUG-02 in docs/findings.md:** no "no results" message of any kind is shown; the user is left with bare column headers. The automated assertion pins the zero-row behavior; the missing empty-state is an observation for the product team.
-- Clearing `#searchBox` restores the full 8-book catalog.
+- Steps 2–4: the table body renders zero rows for every one of these boundary inputs — no book data, no placeholder rows — and the search box stays enabled and usable throughout (the markup term is treated as literal text, not executed or broken on).
+- **Two observations for the product team, reported in docs/findings.md:** no "no results" empty-state message is ever shown (BUG-02) — the user is left with bare column headers; and the whitespace-only term is not trimmed, so `"   "` yields nothing rather than the full catalog (UX-01). The automated assertions pin the zero-row-and-functional behavior; the messaging/trimming gaps are noted, not asserted as correct.
+- Step 5: clearing the box restores the full 8-book catalog.
 
 ### TC-07 — Logged-in user adds a book to collection; it appears in profile
 
