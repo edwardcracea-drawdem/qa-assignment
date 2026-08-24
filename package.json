@@ -1,0 +1,21 @@
+{
+  "name": "qa-assignment",
+  "version": "1.0.0",
+  "description": "QA take-home assignment: test design and Playwright automation for the demoqa.com Book Store",
+  "scripts": {
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:headed": "playwright test tests/ui --headed",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test"
+  },
+  "author": "Edward Cracea",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}
