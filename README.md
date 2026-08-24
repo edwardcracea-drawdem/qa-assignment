@@ -13,7 +13,7 @@ Solution to the QA Engineer take-home assignment: test design and Playwright aut
 | Part 2 bonus — CI | [.github/workflows/tests.yml](.github/workflows/tests.yml) |
 | Part 3 — AI feature test strategy | [docs/ai-testing-strategy.md](docs/ai-testing-strategy.md) |
 | Part 4 — AI usage statement | [below](#ai-usage-statement-part-4) |
-| Extra — exploration findings & bug reports | [docs/findings.md](docs/findings.md) |
+| Extra — findings & bug reports (security / a11y / perf / UX) | [docs/findings.md](docs/findings.md) |
 
 Supporting code: [src/pages/](src/pages) (page objects), [src/fixtures/](src/fixtures) (ad-blocking + per-test API-provisioned users), [src/api/](src/api) (typed client for the Account/BookStore endpoints).
 
@@ -41,7 +41,8 @@ CI ([.github/workflows/tests.yml](.github/workflows/tests.yml)) runs the suite o
 - **Six UI tests, deliberately** (TC-01, 02, 05, 06, 07, 09 — two of them negative): the assignment values well-built over many. TC-08 and the backend half of TC-10 live in the API suite, where the oracle is stronger; TC-03/TC-04 stay manual with reasons documented in the test cases.
 - **Stability on an ad-heavy public site**: ad/analytics requests are aborted at the network layer (`context.route`), waits are event-based (no sleeps), and the config allows 1 retry locally / 2 on CI with a trace captured on first retry.
 - **Shared public backend**: expected search results are derived from the catalog API at run time instead of hard-coded; tests only assert on state owned by their own per-test user.
-- **SUT quirks discovered while exploring** (and worked around, see code comments): a UI login invalidates previously issued API tokens; several profile buttons share `id="submit"`; a zero-result search shows no empty-state message at all. The four defects this exploration surfaced are written up as proper bug reports in [docs/findings.md](docs/findings.md).
+- **SUT quirks discovered while exploring** (and worked around, see code comments): a UI login invalidates previously issued API tokens; several profile buttons share `id="submit"`; a zero-result search shows no empty-state message at all.
+- **A broader bug sweep** beyond the automated scope is written up in [docs/findings.md](docs/findings.md): 15 findings across security, accessibility (axe-core verified), performance and UX — including a **High-severity** one where the auth JWT embeds the user's plaintext password and is stored in a JS-readable cookie.
 - **Fast feedback**: the full 13-test suite completes in about 30 seconds in my local runs (4 parallel workers; network-level ad-blocking removes most of the dead time an ad-heavy public site otherwise costs).
 
 ## AI usage statement (Part 4)
