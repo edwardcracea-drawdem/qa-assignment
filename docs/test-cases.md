@@ -1,6 +1,6 @@
 # Test Cases — DEMOQA Book Store Application
 
-These are my Part 1 structured test cases for the Book Store Application at https://demoqa.com (entry point /books), tested black-box through the public UI and its REST API (Swagger at /swagger). The backend is public and shared — other visitors mutate the same data, and the registration UI sits behind reCAPTCHA — so every case assumes a dedicated per-test user provisioned via `POST /Account/v1/User` and deleted in teardown via `DELETE /Account/v1/User/{uuid}`; no case relies on a pre-existing account or collection state. Priorities: P1 covers the flows a real user cannot live without (login, search, adding a book); P2 covers negative and edge paths around them; P3 is policy verification. Six cases are automated through the UI with Playwright (TypeScript) — the 4–6 the assignment asks for — and the optional API suite additionally covers TC-08 and the backend half of TC-10. For the cases left manual, the reason is stated inline. Element ids in the steps (`#userName`, `#password`, `#searchBox`, `#delete-record-<isbn>`) are the application's real DOM ids and match the page-object selectors.
+These are my Part 1 structured test cases for the Book Store Application at https://demoqa.com (entry point /books), tested black-box through the public UI and its REST API (Swagger at /swagger). The backend is public and shared — other visitors mutate the same data, and the registration UI sits behind reCAPTCHA — so every case that needs an account assumes a dedicated per-test user provisioned via `POST /Account/v1/User` and deleted in teardown via `DELETE /Account/v1/User/{uuid}` (the search cases need none); no case relies on a pre-existing account or collection state. Priorities: P1 covers the flows a real user cannot live without (login, search, adding a book); P2 covers negative and edge paths around them; P3 is policy verification. Six cases are automated through the UI with Playwright (TypeScript) — the 4–6 the assignment asks for — and the optional API suite additionally covers TC-08 and the backend half of TC-10. For the cases left manual, the reason is stated inline. Element ids in the steps (`#userName`, `#password`, `#searchBox`, `#delete-record-<isbn>`) are the application's real DOM ids and match the page-object selectors.
 
 **Grid note (applies to TC-05, TC-06, TC-09):** the book grid on /books and /profile renders one plain `tbody tr` per real result and nothing else — an empty result set means an empty table body, with no placeholder rows and, notably, no "no results" message (flagged as a UX gap in TC-06). Search filters as you type, case-insensitively, across title, author *and* publisher.
 
@@ -68,7 +68,7 @@ These are my Part 1 structured test cases for the Book Store Application at http
 
 ### TC-04 — Direct /profile access when not logged in prompts to login
 
-- **Priority:** P2 | **Type:** edge
+- **Priority:** P2 | **Type:** negative/edge
 - **Automated:** no — the guard page is a static state with no user data behind it: one notice, two links, no backend interaction. Regression risk is minimal and the check takes seconds in the exploratory pass. If the automation scope grew, this would be the first addition — a one-assertion spec.
 - **Preconditions:** No active session (fresh browser context, no stored token/cookies).
 
@@ -116,7 +116,7 @@ These are my Part 1 structured test cases for the Book Store Application at http
 - **Preconditions:** Logged in as the per-test user; the user's collection does not contain the target book (guaranteed by using a freshly provisioned account).
 
 **Steps**
-1. Open https://demoqa.com/books and click the title *Git Pocket Guide* (detail page: https://demoqa.com/books?search=9781449325862).
+1. Open https://demoqa.com/books and click the title of the first catalog book — currently *Git Pocket Guide*; the automation derives it from `GET /BookStore/v1/Books` rather than hard-coding it. The click lands on the detail page (https://demoqa.com/books?search=9781449325862).
 2. Click the **Add To Your Collection** button.
 3. Accept the JS alert that fires.
 4. Navigate to https://demoqa.com/profile.
@@ -146,7 +146,7 @@ These are my Part 1 structured test cases for the Book Store Application at http
 
 - **Priority:** P2 | **Type:** positive
 - **Automated:** yes — tests/ui/collection.spec.ts
-- **Preconditions:** Logged in as the per-test user with exactly one book (ISBN 9781449325862) in the collection, seeded via API for determinism.
+- **Preconditions:** Logged in as the per-test user with exactly one book in the collection — the first catalog entry (currently *Git Pocket Guide*, ISBN 9781449325862), seeded via API for determinism.
 
 **Steps**
 1. Open https://demoqa.com/profile.

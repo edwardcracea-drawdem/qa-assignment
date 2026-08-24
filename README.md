@@ -1,7 +1,5 @@
 # QA Take-Home — demoqa.com Book Store
 
-[![tests](https://github.com/edwardcracea-drawdem/qa-assignment/actions/workflows/tests.yml/badge.svg)](https://github.com/edwardcracea-drawdem/qa-assignment/actions/workflows/tests.yml)
-
 Solution to the QA Engineer take-home assignment: test design and Playwright automation for the **Book Store Application** on [demoqa.com](https://demoqa.com/books), plus a written test strategy for an AI-powered feature.
 
 ## Repository map
@@ -34,7 +32,9 @@ npm run test:headed   # watch the UI tests in a real browser window
 npm run report        # open the HTML report of the last run
 ```
 
-No credentials or `.env` needed: every test provisions its own throwaway user through the public Account API (the registration UI is behind reCAPTCHA) and deletes it in teardown.
+No credentials or `.env` needed: every test that needs an account provisions its own throwaway user through the public Account API (the registration UI is behind reCAPTCHA) and deletes it in teardown; the search and read-only catalog tests run accountless.
+
+CI ([.github/workflows/tests.yml](.github/workflows/tests.yml)) runs the suite on every push to main, every pull request, and nightly — the SUT is a live third-party site, so the scheduled run doubles as a drift check. See the repository's Actions tab for run history.
 
 ## Design notes
 
@@ -42,13 +42,13 @@ No credentials or `.env` needed: every test provisions its own throwaway user th
 - **Stability on an ad-heavy public site**: ad/analytics requests are aborted at the network layer (`context.route`), waits are event-based (no sleeps), and the config allows 1 retry locally / 2 on CI with a trace captured on first retry.
 - **Shared public backend**: expected search results are derived from the catalog API at run time instead of hard-coded; tests only assert on state owned by their own per-test user.
 - **SUT quirks discovered while exploring** (and worked around, see code comments): a UI login invalidates previously issued API tokens; several profile buttons share `id="submit"`; a zero-result search shows no empty-state message at all. The four defects this exploration surfaced are written up as proper bug reports in [docs/findings.md](docs/findings.md).
-- **Fast feedback**: the full 13-test suite completes in under 30 seconds locally (4 parallel workers; network-level ad-blocking removes most of the dead time an ad-heavy public site otherwise costs).
+- **Fast feedback**: the full 13-test suite completes in about 30 seconds in my local runs (4 parallel workers; network-level ad-blocking removes most of the dead time an ad-heavy public site otherwise costs).
 
 ## AI usage statement (Part 4)
 
-- I used Claude (Anthropic's Claude Code) extensively across all four parts, as this assignment's policy invites. The direction and the decisions were mine: choosing the Book Store as SUT, capping the automated scope at six UI cases plus an API bonus suite, provisioning users through the API instead of fighting reCAPTCHA, what stayed manual and why, and which findings were worth writing up as bug reports.
-- Claude generated, under that direction: the drafts of all three documents, the Playwright project (config, fixtures, page objects, specs), this README, and the scripted live exploration of the SUT that preceded any test code.
-- Corrected: its first drafts assumed demoqa's earlier react-table UI (filler rows, `/books?book=` URLs, a "Log out" label) — the site has been redesigned, so selectors, waits and every documented expected result were rewritten from observed behavior, down to exact alert texts.
-- Also corrected: a race in TC-09 (navigating to /profile before the post-login redirect settled), caught in a failed run and diagnosed from the trace.
-- Rejected: a drafted TC-06 assertion that a "No rows found" empty-state message appears on zero-result searches — the live site shows no such message, so the assertion became a documented UX-gap observation instead.
-- Everything was validated against the live application: the full suite ran green three times, including once from a fresh clone following this README verbatim.
+- I used Claude (Anthropic's Claude Code) extensively across all four parts, as this assignment's policy invites. Direction and decisions were mine: the Book Store as SUT, the six-case automated scope, API-provisioned users instead of fighting reCAPTCHA, what stayed manual, what became a bug report.
+- Claude generated, under that direction: all three document drafts, the Playwright project, this README, and the scripted live exploration of the SUT.
+- Corrected: the first drafts assumed demoqa's pre-redesign UI (react-table filler rows, `/books?book=` URLs) — selectors, waits and expected results were rewritten from live behavior, down to exact alert texts.
+- Also corrected: a TC-09 race (navigating before the post-login redirect settled), caught in a failed run and fixed from the trace.
+- Rejected: a drafted "No rows found" assertion for TC-06 — the live site shows no such message; it became bug report BUG-02 instead.
+- Everything was validated live: the suite ran green repeatedly, including from a fresh clone following this README verbatim.
