@@ -106,7 +106,7 @@ These are my Part 1 structured test cases for the Book Store Application at http
 
 **Expected results**
 - The table body renders zero rows — no book data and no placeholder rows.
-- **Observed UX gap, worth a report:** no "no results" message of any kind is shown; the user is left with bare column headers. The automated assertion pins the zero-row behavior; the missing empty-state is an observation for the product team.
+- **Observed UX gap, reported as BUG-02 in docs/findings.md:** no "no results" message of any kind is shown; the user is left with bare column headers. The automated assertion pins the zero-row behavior; the missing empty-state is an observation for the product team.
 - Clearing `#searchBox` restores the full 8-book catalog.
 
 ### TC-07 — Logged-in user adds a book to collection; it appears in profile
