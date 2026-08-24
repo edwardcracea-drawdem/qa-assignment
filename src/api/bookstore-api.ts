@@ -71,6 +71,16 @@ export class BookStoreApi {
     }
   }
 
+  async getUser(token: string, userId: string): Promise<{ userId: string; username: string; books: Book[] }> {
+    const res = await this.request.get(`/Account/v1/User/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.status() !== 200) {
+      throw new Error(`User fetch failed: ${res.status()} ${await res.text()}`);
+    }
+    return res.json();
+  }
+
   async getBooks(): Promise<Book[]> {
     const res = await this.request.get('/BookStore/v1/Books');
     if (res.status() !== 200) {

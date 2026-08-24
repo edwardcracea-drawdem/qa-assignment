@@ -27,12 +27,17 @@ test.describe('Book Store search', () => {
     expect((await booksPage.visibleTitles()).sort()).toEqual(expected);
   });
 
-  test('TC-06: search with no matching book shows an empty list', async ({ page }) => {
+  test('TC-06: search with no matching book shows an empty list', async ({ page, api }) => {
     const booksPage = new BooksPage(page);
+    const catalog = await api.getBooks();
 
     await booksPage.goto();
     await booksPage.search('no such book 0000');
 
     await expect(booksPage.rows).toHaveCount(0);
+
+    // Clearing the search restores the full catalog.
+    await booksPage.search('');
+    await expect(booksPage.rows).toHaveCount(catalog.length);
   });
 });

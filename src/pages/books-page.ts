@@ -3,16 +3,18 @@ import { Locator, Page } from '@playwright/test';
 export class BooksPage {
   readonly searchBox: Locator;
   /**
-   * Real result rows. The redesigned book grid renders plain table rows
-   * only for actual results, so `tbody tr` is safe to count directly.
+   * Real result rows, scoped to the book grid's own container so the
+   * locator stays correct even if another table ever joins the page.
+   * The redesigned grid renders plain table rows only for actual
+   * results, so rows are safe to count directly.
    */
   readonly rows: Locator;
   readonly titleLinks: Locator;
 
   constructor(readonly page: Page) {
     this.searchBox = page.locator('#searchBox');
-    this.rows = page.locator('tbody tr');
-    this.titleLinks = page.locator('tbody tr a');
+    this.rows = page.locator('.books-wrapper tbody tr');
+    this.titleLinks = page.locator('.books-wrapper tbody tr a');
   }
 
   async goto(): Promise<void> {
@@ -29,5 +31,10 @@ export class BooksPage {
 
   visibleTitles(): Promise<string[]> {
     return this.titleLinks.allTextContents();
+  }
+
+  /** Clicks a book's title link, landing on its detail page. */
+  async openBook(title: string): Promise<void> {
+    await this.page.getByRole('link', { name: title, exact: true }).click();
   }
 }

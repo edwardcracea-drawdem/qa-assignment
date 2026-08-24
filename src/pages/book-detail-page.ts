@@ -7,10 +7,19 @@ export class BookDetailPage {
     this.addToCollectionButton = page.getByRole('button', { name: 'Add To Your Collection' });
   }
 
+  /**
+   * Readiness is anchored on the Add button, which only renders for
+   * authenticated users — this page object assumes a logged-in session,
+   * which is the only state in which the suite interacts with details.
+   */
+  async waitForLoaded(): Promise<void> {
+    await this.addToCollectionButton.waitFor();
+  }
+
   /** The detail view is addressed as /books?search=<isbn>. */
   async gotoBook(isbn: string): Promise<void> {
     await this.page.goto(`/books?search=${isbn}`);
-    await this.page.getByText(`${isbn}`).first().waitFor();
+    await this.waitForLoaded();
   }
 
   /**

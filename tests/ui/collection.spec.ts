@@ -1,10 +1,13 @@
 import { test, expect } from '../../src/fixtures/test-fixtures';
 import { LoginPage } from '../../src/pages/login-page';
+import { BooksPage } from '../../src/pages/books-page';
 import { BookDetailPage } from '../../src/pages/book-detail-page';
 import { ProfilePage } from '../../src/pages/profile-page';
 
 test.describe('Book Store collection', () => {
   test('TC-07: a logged-in user can add a book to their collection', async ({ page, api, testUser }) => {
+    // The book under test is the first catalog entry, taken from the API
+    // rather than hard-coded — the catalog belongs to the demo site.
     const [book] = await api.getBooks();
 
     const loginPage = new LoginPage(page);
@@ -12,8 +15,14 @@ test.describe('Book Store collection', () => {
     await loginPage.logIn(testUser.userName, testUser.password);
     await expect(page).toHaveURL(/\/profile$/);
 
+    // The documented user journey: list -> title click -> detail page.
+    const booksPage = new BooksPage(page);
+    await booksPage.goto();
+    await booksPage.openBook(book.title);
+    await expect(page).toHaveURL(new RegExp(book.isbn));
+
     const detailPage = new BookDetailPage(page);
-    await detailPage.gotoBook(book.isbn);
+    await detailPage.waitForLoaded();
     const alertText = await detailPage.addToCollection();
     expect(alertText).toBe('Book added to your collection.');
 
@@ -41,9 +50,15 @@ test.describe('Book Store collection', () => {
     await profilePage.waitForLoaded();
     await expect(profilePage.bookRow(book.title)).toBeVisible();
 
-    const alertText = await profilePage.deleteBook(book.isbn);
+    await profilePage.openDeleteConfirmation(book.isbn);
+    await expect(profilePage.deleteModal).toContainText('Do you want to delete this book?');
+    const alertText = await profilePage.confirmDeletion();
     expect(alertText).toBe('Book deleted.');
 
     await expect(profilePage.rows).toHaveCount(0);
+
+    // Deleting from a personal collection must not touch the shared catalog.
+    const catalogAfter = await api.getBooks();
+    expect(catalogAfter.some((b) => b.isbn === book.isbn)).toBe(true);
   });
 });

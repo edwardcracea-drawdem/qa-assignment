@@ -55,6 +55,11 @@ test.describe('BookStore API', () => {
     const second = await api.addBooks(testUser.token, testUser.userId, [book.isbn]);
     expect(second.status()).toBe(400);
     expect((await second.json()).message).toBe("ISBN already present in the User's Collection!");
+
+    // The rejected duplicate must not have touched the collection.
+    const user = await api.getUser(testUser.token, testUser.userId);
+    expect(user.books).toHaveLength(1);
+    expect(user.books[0].isbn).toBe(book.isbn);
   });
 
   test('negative: collection writes require a token', async ({ api, testUser }) => {
@@ -67,6 +72,10 @@ test.describe('BookStore API', () => {
     expect(res.status()).toBe(400);
     const body = await res.json();
     expect(body.code).toBe('1300');
-    expect(body.message).toContain('Passwords must have');
+    expect(body.message).toBe(
+      "Passwords must have at least one non alphanumeric character, one digit ('0'-'9'), " +
+        "one uppercase ('A'-'Z'), one lowercase ('a'-'z'), one special character and Password " +
+        'must be eight characters or longer.',
+    );
   });
 });
